@@ -1,6 +1,10 @@
 # バックエンド開発サーバーの実行方法
 
-まず、Python -v3.12.3をインストールする必要があります
+まず、Python -v3.12.3をインストールする必要があります。\
+次に、バックエンド プロジェクトをダウンロードします。
+### `git clone https://github.com/AppleSeed95/Global_business_backend.git`
+
+
 
 ## 手順
 
