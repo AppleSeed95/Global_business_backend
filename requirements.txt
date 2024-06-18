@@ -1,0 +1,5 @@
+beautifulsoup4
+django
+ntplib
+requests
+django-cors-headers
