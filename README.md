@@ -1,29 +1,27 @@
-# How to run the backend development server
+# バックエンド開発サーバーの実行方法
 
-first, you need to install Python  -v3.12.3
+まず、Python -v3.12.3をインストールする必要があります
 
-## Steps 
+## 手順
 
-In the project directory, you can run:
+プロジェクト ディレクトリで、次のコマンドを実行できます。
 
 ### `python -m venv .venv`
 
-configures virtual environment on the project directory.
+プロジェクト ディレクトリに仮想環境を構成します。
 
 ### `.venv/scripts/activate`
 
-activates virtual environment.
+仮想環境をアクティブにします。
 
 ### `pip install -r requirements.txt`
 
-installs all required libraries.
+必要なライブラリをすべてインストールします。
 
 ## `python manage.py migrate`
 
-migrates database.
-
+データベースを移行します。
 
 ## `python manage.py runserver`
 
-starts the development server
-
+開発サーバーを起動する
