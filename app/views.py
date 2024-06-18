@@ -103,6 +103,7 @@ def purchase_ticket(request):
         with requests.session() as session:
             data = json.loads(request.body)
             eventId = data['event_id']
+            payment_method = data['payment_method']
             user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.74 Safari/537.36 Edg/99.0.1150.55'
             header = {
                 'User-Agent': user_agent,
@@ -143,27 +144,25 @@ def purchase_ticket(request):
             requestData.update({"event_id":data['event_id']})
             requestData.update({"event_cname":data['event_cname']})
             res = session.post(requestUrl, data=requestData, headers=header, cookies=res.cookies)
-            if res.history:
-                for resp in res.history:
-                    print(f"Redirected from {resp.url} to {resp.headers['Location']}")
-                print(f"Final destination: {res.url}")
-            else:
-                print("No redirects")
             location = res.url
             locationPart = re.split('[=&]',location)
-            print(locationPart)
             reservedSessionId = locationPart[3]
             onetimeToken = locationPart[5]
-            requestUrl = 'https://t.livepocket.jp/api/tickets/purchase?mytimestamp=' + str(int(getNtpTimeUnix(_ntpServer)*1000))
+            if payment_method == '0':
+                requestUrl = 'https://t.livepocket.jp/api/tickets/purchase?mytimestamp=' + str(int(getNtpTimeUnix(_ntpServer)*1000))
+                parameterPaymentType = 'credit'
+            else:
+                requestUrl = 'https://t.livepocket.jp/api/tickets/prepare_purchase?mytimestamp=' + str(int(getNtpTimeUnix(_ntpServer)*1000))
+                parameterPaymentType = 'cvs'
             requestData = {
                 'utoken': data['utoken'],
                 'onetime_token_name': 'buy_ticket',
                 'onetime_token_value': onetimeToken,
                 'url': 'https://t.livepocket.jp/purchase/confirm?id=' + eventId + '&reserved_session_id=' + reservedSessionId,
                 'reserve_session_id': reservedSessionId,
-                'payment_method': 0,
+                'payment_method': payment_method,
                 'event_id': eventId,
-                'payment_type': 'credit',
+                'payment_type': parameterPaymentType,
                 'order_id': '',
                 'notified': 'true',
                 'serial_codes': 'null',
@@ -172,25 +171,55 @@ def purchase_ticket(request):
                 'use_discount_code_id': '',
                 'security_code': ''
             }
+            if payment_method == '0':
+                print(payment_method)
+                # requestData.update({"security_code": _securityCode})
+            else:
+                selected_cvs_code = data['selected_cvs_code']
+                requestData.update({"selected_cvs_code": selected_cvs_code})
             res = session.post(requestUrl, data=requestData, headers=header, cookies=res.cookies)
             jsonData = json.loads(res.text)
             orderId = jsonData['result']['order_id']
             onetimeToken = jsonData['result']['onetime_token_value']
-            requestUrl = 'https://t.livepocket.jp/purchase/enquate'
-            requestData = {
-                'reserve_session_id': reservedSessionId,
-                'order_id': orderId,
-                'onetime_token_name': 'buy_ticket',
-                'onetime_token_value': onetimeToken,
-            }
-            res = session.post(requestUrl, data=requestData, headers=header, cookies=res.cookies)
-            if res.history:
-                for resp in res.history:
-                    print(f"Redirected from {resp.url} to {resp.headers['Location']}")
-                print(f"Final destination: {res.url}")
+            if payment_method == '0':
+                requestUrl = 'https://t.livepocket.jp/purchase/enquate'
+                requestData = {
+                    'reserve_session_id': reservedSessionId,
+                    'order_id': orderId,
+                    'onetime_token_name': 'buy_ticket',
+                    'onetime_token_value': onetimeToken,
+                }
+                res = session.post(requestUrl, data=requestData, headers=header, cookies=res.cookies)
+                
+                response_data = {"data":res.text}
             else:
-                print("No redirects")
-            response_data = {"data":res.text}
+                requestUrl = 'https://t.livepocket.jp/purchase/cvs_confirm'
+                selected_cvs_code = data['selected_cvs_code']
+                requestData = {
+                    'id': eventId,
+                    'reserved_session_id': reservedSessionId,
+                    'payment_method_type': parameterPaymentType,
+                    'note': "",
+                    'selected_cvs_code': selected_cvs_code,
+                    'order_id': orderId,
+                    'onetime_token_name': 'buy_ticket',
+                    'onetime_token_value': onetimeToken,
+                }
+                res = session.post(requestUrl, data=data, headers=header, cookies=res.cookies)
+                requestUrl = 'https://t.livepocket.jp/purchase/form_redirect?onetime_token_name=buy_ticket&onetime_token_value=' + onetimeToken
+                res = session.get(requestUrl, headers=header, cookies=res.cookies)
+                requestUrl = 'https://t.livepocket.jp/purchase/enquate?order_id=' + orderId + '&onetime_token_name=buy_ticket&onetime_token_value=' + onetimeToken
+                res = session.get(requestUrl, headers=header, cookies=res.cookies)
+                # print(res.text)
+                if res.history:
+                    for resp in res.history:
+                        print(f"Redirected from {resp.url} to {resp.headers['Location']}")
+                    print(f"Final destination: {res.url}")
+                else:
+                    print("No redirects")
+                requestUrl = 'https://t.livepocket.jp/purchase/complete?order_id=' + orderId
+                res = session.get(requestUrl, headers=header, cookies=res.cookies)
+                response_data = {"data":res.text}
     else:
         response_data = {'msg': 'This endpoint accepts only POST requests.'}
     return JsonResponse(response_data, safe=False)
