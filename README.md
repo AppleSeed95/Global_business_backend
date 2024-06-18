@@ -18,10 +18,10 @@
 
 必要なライブラリをすべてインストールします。
 
-## `python manage.py migrate`
+### `python manage.py migrate`
 
 データベースを移行します。
 
-## `python manage.py runserver`
+### `python manage.py runserver`
 
 開発サーバーを起動する
