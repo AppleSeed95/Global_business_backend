@@ -28,4 +28,4 @@
 
 ### `python manage.py runserver`
 
-開発サーバーを起動する
+開発サーバーを起動する。
