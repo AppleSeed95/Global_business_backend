@@ -3,3 +3,4 @@ django
 ntplib
 requests
 django-cors-headers
+selenium
