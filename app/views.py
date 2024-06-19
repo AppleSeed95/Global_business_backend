@@ -181,7 +181,7 @@ def purchase_credit_ticket(request):
         time.sleep(5)
         buy_button = wait.until(EC.element_to_be_clickable((By.ID, 'exec-button')))
         buy_button.click()
-        time.sleep(20)
+        time.sleep(30)
     finally:
         print('end')
 
