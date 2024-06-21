@@ -62,7 +62,6 @@ def login_view(request):
                 'password': password,
                 'login_password': email + password,
             }
-            print(data)
             res = session.post(requestUrl, data=data, headers=header, cookies=res.cookies)
 
             jsonData = json.loads(res.text)
@@ -140,7 +139,7 @@ def purchase_credit_ticket(request):
     email = data['email']
     password = data['password']
     event_url = data['event_url']
-    ticket_id = data['ticket_id']
+    ticket_id = data['ticket_id_origin']
     ticket_cnt = data['ticket_cnt']
     security_code = data['security_code']
     # webdriver_path = os.path.join(settings.BASE_DIR, 'chromedriver.exe')
@@ -238,10 +237,7 @@ def purchase_ticket(request):
             reservedSessionId = locationPart[3]
             onetimeToken = locationPart[5]
             if payment_method == '0':
-                if data['security_code']:
-                    requestUrl = 'https://t.livepocket.jp/api/tickets/prepare_purchase?mytimestamp=' + str(int(getNtpTimeUnix(_ntpServer)*1000))
-                else:
-                    requestUrl = 'https://t.livepocket.jp/api/tickets/purchase?mytimestamp=' + str(int(getNtpTimeUnix(_ntpServer)*1000))
+                requestUrl = 'https://t.livepocket.jp/api/tickets/purchase?mytimestamp=' + str(int(getNtpTimeUnix(_ntpServer)*1000))
                 parameterPaymentType = 'credit'
             else:
                 requestUrl = 'https://t.livepocket.jp/api/tickets/prepare_purchase?mytimestamp=' + str(int(getNtpTimeUnix(_ntpServer)*1000))
@@ -263,9 +259,7 @@ def purchase_ticket(request):
                 'use_discount_code_id': '',
             }
             if payment_method == '0':
-                if(data['security_code']):
-                    security_code = data['security_code']
-                    requestData.update({"security_code": security_code})
+                print('free ticket or credit card purchase')
             else:
                 selected_cvs_code = data['selected_cvs_code']
                 requestData.update({"selected_cvs_code": selected_cvs_code})
@@ -289,7 +283,6 @@ def purchase_ticket(request):
                         'onetime_token_value': onetimeToken,
                     }
                     res = session.post(requestUrl, data=requestData, headers=header, cookies=res.cookies)
-                    print(res.text)
                     response_data = {"data":'samples'}
                 else:
                     requestUrl = 'https://t.livepocket.jp/purchase/enquate'
@@ -318,12 +311,12 @@ def purchase_ticket(request):
                 res = session.post(requestUrl, data=requestData, headers=header, cookies=res.cookies)
                 requestUrl = 'https://t.livepocket.jp/purchase/form_redirect?onetime_token_name=buy_ticket&onetime_token_value=' + onetimeToken
                 res = session.get(requestUrl, headers=header, cookies=res.cookies)
-                if res.history:
-                    for resp in res.history:
-                        print(f"Redirected from {resp.url} to {resp.headers['Location']}")
-                    print(f"Final destination: {res.url}")
-                else:
-                    print("No redirects")
+                # if res.history:
+                #     for resp in res.history:
+                #         print(f"Redirected from {resp.url} to {resp.headers['Location']}")
+                #     print(f"Final destination: {res.url}")
+                # else:
+                #     print("No redirects")
                 # requestUrl = 'https://t.livepocket.jp/purchase/enquate?order_id=' + orderId + '&onetime_token_name=buy_ticket&onetime_token_value=' + onetimeToken
                 # res = session.get(requestUrl, headers=header, cookies=res.cookies)
                 # # if res.history:
