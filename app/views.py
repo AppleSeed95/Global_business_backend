@@ -126,7 +126,7 @@ def calc_time(request):
                                     second      = int(_scheduledTime[17:19]),
                                     tzinfo      = None
                                 )
-        scheduledTimeUnix = datetime.datetime.timestamp(scheduledTime)
+        # scheduledTimeUnix = datetime.datetime.timestamp(scheduledTime)
         scheduledTimeBeforeUnix = datetime.datetime.timestamp(scheduledTime - datetime.timedelta(seconds=_beforeTime))
         ntpTimeUnix = getNtpTimeUnix(_ntpServer)
 
@@ -311,12 +311,12 @@ def purchase_ticket(request):
                 res = session.post(requestUrl, data=requestData, headers=header, cookies=res.cookies)
                 requestUrl = 'https://t.livepocket.jp/purchase/form_redirect?onetime_token_name=buy_ticket&onetime_token_value=' + onetimeToken
                 res = session.get(requestUrl, headers=header, cookies=res.cookies)
-                # if res.history:
-                #     for resp in res.history:
-                #         print(f"Redirected from {resp.url} to {resp.headers['Location']}")
-                #     print(f"Final destination: {res.url}")
-                # else:
-                #     print("No redirects")
+                if res.history:
+                    for resp in res.history:
+                        print(f"Redirected from {resp.url} to {resp.headers['Location']}")
+                    print(f"Final destination: {res.url}")
+                else:
+                    print("No redirects")
                 # requestUrl = 'https://t.livepocket.jp/purchase/enquate?order_id=' + orderId + '&onetime_token_name=buy_ticket&onetime_token_value=' + onetimeToken
                 # res = session.get(requestUrl, headers=header, cookies=res.cookies)
                 # # if res.history:
@@ -327,6 +327,7 @@ def purchase_ticket(request):
                 # #     print("No redirects")                
                 # requestUrl = 'https://t.livepocket.jp/purchase/complete?order_id=' + orderId
                 # res = session.get(requestUrl, headers=header, cookies=res.cookies)
+                # print(res.text)
                 response_data = {"data":res.text}
     else:
         response_data = {'msg': 'This endpoint accepts only POST requests.'}
